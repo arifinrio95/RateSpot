@@ -123,7 +123,8 @@ def main():
         df_top10['rank'] = df_top10.index + 1
 
         # Display top 10 places
-        st.write("Top 10 Places:")
+        st.subtitle("Top 10 Places:")
+        st.write("The Top 10 places are selected based on criteria of having a rating above 4.2 and more than 100 reviews. This list is then sorted according to the product of the normalized rating value and the normalized number of reviews.")
         df_top10_renamed = df_top10.rename(columns={
                                 'name': 'Nama Tempat',
                                 'rating': 'Rating',
