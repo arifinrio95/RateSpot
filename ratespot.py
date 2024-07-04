@@ -302,6 +302,36 @@ def create_infographic_icon_poster(df, query, location, width=900):
     </html>
     '''
 
+def create_minimalist_text_poster(query, location, width=900):
+    height = int(width * 1.4)  # Mempertahankan rasio portrait
+
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:ital,wght@0,400;1,300&display=swap');
+            body {{ font-family: 'Roboto', sans-serif; }}
+            .title {{ font-family: 'Playfair Display', serif; }}
+        </style>
+    </head>
+    <body>
+        <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
+            <div class="flex flex-col justify-center h-full pl-12"> <!-- Adjusted padding for left alignment -->
+                <div class="max-w-lg"> <!-- Limit max width for better layout control -->
+                    <h1 class="title text-5xl font-bold mb-2 text-gray-900">{query} terbaik</h1>
+                    <h2 class="title text-4xl font-bold mb-6 text-gray-800">di {location}</h2>
+                    <p class="text-lg italic text-gray-600">Menurut Google Reviews</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
 def create_retro_grid_poster(df, query, location, width=900):
     shops_html = ""
     for index, row in df.iterrows():
@@ -385,7 +415,9 @@ def install_chromium():
 #         return None
 
 def generate_poster(df, query, location, design, width=900):
-    if design == 'original':
+    if design == 'minimalist_text':
+        html_content = create_minimalist_text_poster(query, location, width)
+    elif design == 'original':
         html_content = create_coffee_shops_poster(df, query, location, width)
     elif design == 'modern':
         html_content = create_modern_bar_chart_poster(df, query, location, width)
@@ -406,8 +438,8 @@ def generate_poster(df, query, location, design, width=900):
             page = browser.new_page()
             page.set_content(html_content)
             
-            if design == 'original':
-                # For original design, use fixed height based on width
+            if design in ['original', 'minimalist_text']:
+                # Use fixed height for these designs
                 page.set_viewport_size({"width": width, "height": int(width * 1.4)})
             else:
                 # For other designs, use the previous dynamic height calculation
