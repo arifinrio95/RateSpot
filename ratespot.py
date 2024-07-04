@@ -3,6 +3,7 @@ import requests
 import time
 import pandas as pd
 import numpy as np
+import plotly.express as px
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -111,6 +112,14 @@ def main():
         st.dataframe(df_top10[['rank', 'name', 'rating', 'user_ratings_total', 'address']], 
                      height=400, 
                      use_container_width=True)
+
+        # Create scatter plot
+        st.write("Scatter Plot: Number of Reviews vs Rating")
+        fig = px.scatter(df, x='user_ratings_total', y='rating', hover_name='name',
+                         labels={'user_ratings_total': 'Number of Reviews', 'rating': 'Rating'},
+                         title=f'Rating vs Number of Reviews for {query} in {location}')
+        fig.update_layout(height=600)
+        st.plotly_chart(fig, use_container_width=True)
 
         # Download button for full data
         csv = df.to_csv(index=False)
