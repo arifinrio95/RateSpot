@@ -101,24 +101,27 @@ def main():
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
         # df['score'] = df['user_ratings_total']*df['rating']
-        df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
+        # df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
+
+        # Lakukan min-max scaling pada kolom user_ratings_total dan rating
+        df['scaled_ratings'] = min_max_scale(df['user_ratings_total'])
+        df['scaled_rating'] = min_max_scale(df['rating'])
+        
+        # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
+        df['score'] = df['scaled_ratings'] * df['scaled_rating']
+        
+        # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
+        df = df.sort_values('score', ascending=False).reset_index(drop=True)
+
+        
 
         st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
 
         df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
 
-        # Lakukan min-max scaling pada kolom user_ratings_total dan rating
-        df_top10['scaled_ratings'] = min_max_scale(df_top10['user_ratings_total'])
-        df_top10['scaled_rating'] = min_max_scale(df_top10['rating'])
         
-        # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
-        df_top10['score'] = df_top10['scaled_ratings'] * df_top10['scaled_rating']
-        
-        # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
-        df_top10 = df_top10.sort_values('score', ascending=False).reset_index(drop=True)
-
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
 
