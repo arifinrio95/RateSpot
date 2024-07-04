@@ -386,7 +386,9 @@ def install_chromium():
 #         return None
 
 def generate_poster(df, query, location, design, width=900):
-    if design == 'modern':
+    if design == 'original':
+        html_content = create_coffee_shops_poster(df, query, location, width)
+    elif design == 'modern':
         html_content = create_modern_bar_chart_poster(df, query, location, width)
     elif design == 'colorful':
         html_content = create_colorful_card_poster(df, query, location, width)
@@ -539,7 +541,7 @@ def main():
 
         st.header("Generated Posters")
         
-        designs = ['modern', 'colorful', 'minimalist', 'infographic', 'retro']
+        designs = ['original', 'modern', 'colorful', 'minimalist', 'infographic', 'retro']
         
         for design in designs:
             st.subheader(f"{design.capitalize()} Design")
