@@ -117,10 +117,10 @@ def create_coffee_shops_poster(df, query, location):
 # Fungsi untuk menginstal Chromium
 def install_chromium():
     try:
-        st.write("Installing Chromium...")
+        # st.write("Installing Chromium...")
         result = subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], 
                                 capture_output=True, text=True, check=True)
-        st.write("Chromium installed successfully.")
+        # st.write("Chromium installed successfully.")
         st.write(result.stdout)
     except subprocess.CalledProcessError as e:
         st.error("Failed to install Chromium.")
