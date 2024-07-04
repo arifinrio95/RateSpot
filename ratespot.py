@@ -7,6 +7,8 @@ import plotly.express as px
 from playwright.sync_api import sync_playwright
 from PIL import Image
 import io
+import subprocess
+import sys
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -112,16 +114,34 @@ def create_coffee_shops_poster(df, query, location):
     </html>
     '''
 
+# Fungsi untuk menginstal Chromium
+def install_chromium():
+    try:
+        st.write("Installing Chromium...")
+        result = subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], 
+                                capture_output=True, text=True, check=True)
+        st.write("Chromium installed successfully.")
+        st.write(result.stdout)
+    except subprocess.CalledProcessError as e:
+        st.error("Failed to install Chromium.")
+        st.error(e.stderr)
+        raise
+        
+# Fungsi untuk generate poster
 def generate_poster(df, query, location):
     html_content = create_coffee_shops_poster(df, query, location)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(chromium_sandbox=False)
-        page = browser.new_page()
-        page.set_content(html_content)
-        page.set_viewport_size({"width": 900, "height": 1300})
-        screenshot_bytes = page.screenshot()
-        browser.close()
-    return screenshot_bytes
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(chromium_sandbox=False)
+            page = browser.new_page()
+            page.set_content(html_content)
+            page.set_viewport_size({"width": 900, "height": 1300})
+            screenshot_bytes = page.screenshot()
+            browser.close()
+        return screenshot_bytes
+    except Exception as e:
+        st.error(f"Error generating poster: {str(e)}")
+        return None
 
 # Main Streamlit app
 def main():
@@ -222,19 +242,26 @@ def main():
         # fig.update_layout(height=600)
         # st.plotly_chart(fig, use_container_width=True)
 
-        generate_poster(df_top10, query, location)
-            
-        # Display the image
-        image = Image.open(io.BytesIO(screenshot_bytes))
-        st.image(image, caption="Generated Poster", use_column_width=True)
-
-        # Offer download button for the poster
-        st.download_button(
-            label="Download Poster",
-            data=screenshot_bytes,
-            file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
-            mime="image/png"
-        )
+        # Bagian untuk generate poster
+        if st.button("Generate Poster"):
+            try:
+                install_chromium()  # Coba instal Chromium
+                with st.spinner("Generating poster..."):
+                    screenshot_bytes = generate_poster(df_top10, query, location)
+                    if screenshot_bytes:
+                        image = Image.open(io.BytesIO(screenshot_bytes))
+                        st.image(image, caption="Generated Poster", use_column_width=True)
+                        st.download_button(
+                            label="Download Poster",
+                            data=screenshot_bytes,
+                            file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
+                            mime="image/png"
+                        )
+                    else:
+                        st.error("Failed to generate poster.")
+            except Exception as e:
+                st.error(f"An error occurred: {str(e)}")
+                
 
         # Download button for full data
         csv = df.to_csv(index=False)
