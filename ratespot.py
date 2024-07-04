@@ -8,8 +8,6 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 import io
 
-browser = p.chromium.launch(chromium_sandbox=False)
-
 # Function to search for places
 def search_places(api_key, query, location):
     base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
@@ -117,7 +115,7 @@ def create_coffee_shops_poster(df, query, location):
 def generate_poster(df, query, location):
     html_content = create_coffee_shops_poster(df, query, location)
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        browser = p.chromium.launch(chromium_sandbox=False)
         page = browser.new_page()
         page.set_content(html_content)
         page.set_viewport_size({"width": 900, "height": 1300})
