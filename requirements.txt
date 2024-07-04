@@ -1,11 +1,7 @@
-pip
-streamlit 
-requests 
-pandas 
-numpy 
-matplotlib
+streamlit
+requests
+pandas
+numpy
 plotly
-time
 playwright
 pillow
-io
