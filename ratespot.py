@@ -432,7 +432,7 @@ def main():
     api_key = st.secrets["google_places_api_key"]
 
     # User inputs
-    location = st.text_input("Enter location", "Purwokerto")
+    location = st.text_input("Enter location", "Tangerang Selatan")
     query = st.text_input("Enter place type", "Coffee Shop")
 
     if st.button("Search"):
