@@ -97,7 +97,8 @@ def main():
         df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
-        df = df.sort_values(by='user_ratings_total', ascending=False)
+        df['score'] = df['user_ratings_total']*df['rating']
+        df = df.sort_values(by='score', ascending=False)
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
 
