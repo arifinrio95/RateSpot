@@ -105,12 +105,15 @@ def main():
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
 
-        # Lakukan min-max scaling pada kolom user_ratings_total dan rating
-        df['scaled_ratings'] = min_max_scale(df['user_ratings_total'])
-        df['scaled_rating'] = min_max_scale(df['rating'])
+        # # Lakukan min-max scaling pada kolom user_ratings_total dan rating
+        # df['scaled_ratings'] = min_max_scale(df['user_ratings_total'])
+        # df['scaled_rating'] = min_max_scale(df['rating'])
         
-        # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
-        df['score'] = df['scaled_ratings'] * df['scaled_rating']
+        # # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
+        # df['score'] = df['scaled_ratings'] * df['scaled_rating']
+
+        # Hitung geometric mean dari nilai yang telah di-scale
+        df['score'] = np.sqrt(df['scaled_ratings'] * df['scaled_rating'])
         
         # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
         df = df.sort_values('score', ascending=False).reset_index(drop=True)
@@ -127,7 +130,7 @@ def main():
 
         # Display top 10 places
         st.header("Top 10 Places:")
-        st.write("The Top 10 places are selected based on criteria of having a rating above 4.2 and more than 100 reviews. This list is then sorted according to the product of the normalized rating value and the normalized number of reviews.")
+        st.write("The top 10 places are selected based on criteria of having a rating above 4.2 and more than 100 reviews. This list is then sorted according to the Geometric Mean of rating value and number of reviews.")
         df_top10_renamed = df_top10.rename(columns={
                                 'name': 'Nama Tempat',
                                 'rating': 'Rating',
