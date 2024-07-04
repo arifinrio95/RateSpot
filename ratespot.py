@@ -113,7 +113,7 @@ def main():
         # df['score'] = df['scaled_ratings'] * df['scaled_rating']
 
         # Hitung geometric mean dari nilai yang telah di-scale
-        df['score'] = np.sqrt(df['scaled_ratings'] * df['scaled_rating'])
+        df['score'] = np.sqrt(df['user_ratings_total'] * df['rating'])
         
         # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
         df = df.sort_values('score', ascending=False).reset_index(drop=True)
