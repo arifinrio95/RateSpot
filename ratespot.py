@@ -97,14 +97,16 @@ def main():
         df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
-        df['score'] = df['user_ratings_total']*df['rating']
-        df = df.sort_values(by='score', ascending=False)
+        # df['score'] = df['user_ratings_total']*df['rating']
+        df = df.sort_values(by='user_ratings_total', ascending=False)
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
 
         st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
 
-        df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10).sort_values(by=['rating'], ascending=False)
+        df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
+        df_top10['score'] = df_top10['user_ratings_total']*df_top10['rating']
+        df_top10 = df_top10.sort_values(by=['score'], ascending=False)
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
 
