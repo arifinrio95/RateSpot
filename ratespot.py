@@ -528,7 +528,7 @@ def main():
         # st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
 
         df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
-
+        df_top10 = df_top10.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
         
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
