@@ -143,7 +143,7 @@ def generate_poster(df, query, location):
             full_height = page.evaluate('() => document.body.scrollHeight')
             
             # Update the viewport and take the screenshot
-            page.set_viewport_size({"width": 900, "height": full_height})
+            page.set_viewport_size({"width": 900, "height": 1500})
             screenshot_bytes = page.screenshot(full_page=True)
             
             browser.close()
