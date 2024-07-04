@@ -4,6 +4,9 @@ import time
 import pandas as pd
 import numpy as np
 import plotly.express as px
+from playwright.sync_api import sync_playwright
+from PIL import Image
+import io
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -50,6 +53,75 @@ def get_place_details(api_key, place_id):
 
 def min_max_scale(series):
     return (series - series.min()) / (series.max() - series.min())
+
+# Fungsi-fungsi untuk pembuatan poster
+def create_star_svg(percentage):
+    return f'''
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="star-{percentage}">
+                <stop offset="{percentage}%" stop-color="#F2C94C" />
+                <stop offset="{percentage}%" stop-color="#E0E0E0" />
+            </linearGradient>
+        </defs>
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+              fill="url(#star-{percentage})" stroke="#F2C94C" stroke-width="1" />
+    </svg>
+    '''
+
+def create_coffee_shops_poster(df, query, location):
+    shops_html = ""
+    for index, row in df.iterrows():
+        stars_html = ''.join([create_star_svg(max(0, min(100, (row['rating'] - i) * 100))) for i in range(5)])
+        shops_html += f'''
+        <div class="bg-[#E4D5B7] p-6 rounded-lg shadow-md mb-6">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-2xl text-[#4A321E]">{row['rank']}. {row['name']}</span>
+                <div class="flex items-center">
+                    <div class="flex mr-2">{stars_html}</div>
+                    <span class="font-medium text-xl text-[#4A321E]">{row['rating']:.1f}</span>
+                </div>
+            </div>
+            <div class="text-lg text-[#6F4E37] mt-2">{row['user_ratings_total']:,} ratings</div>
+        </div>
+        '''
+
+    dynamic_title = f"Top 10 {query} di {location}"
+
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            body {{ font-family: 'Inter', sans-serif; }}
+        </style>
+    </head>
+    <body>
+        <div class="bg-[#C1A87D] p-8 min-h-screen flex flex-col items-center justify-center font-sans" style="min-width: 800px; min-height: 1200px;">
+            <h1 class="text-5xl font-bold mb-10 text-[#4A321E] text-center">{dynamic_title}</h1>
+            <div class="space-y-6 w-full max-w-3xl">
+                {shops_html}
+            </div>
+            <div class="mt-10 text-lg text-[#4A321E]">Data based on user ratings and reviews</div>
+        </div>
+    </body>
+    </html>
+    '''
+
+def generate_poster(df, query, location):
+    html_content = create_coffee_shops_poster(df, query, location)
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.set_content(html_content)
+        page.set_viewport_size({"width": 900, "height": 1300})
+        screenshot_bytes = page.screenshot()
+        browser.close()
+    return screenshot_bytes
 
 # Main Streamlit app
 def main():
@@ -142,13 +214,29 @@ def main():
                      height=400, 
                      use_container_width=True)
 
-        # Create scatter plot
-        st.write("Scatter Plot: Number of Reviews vs Rating")
-        fig = px.scatter(df, x='user_ratings_total', y='rating', hover_name='name',
-                         labels={'user_ratings_total': 'Number of Reviews', 'rating': 'Rating'},
-                         title=f'Rating vs Number of Reviews for {query} in {location}')
-        fig.update_layout(height=600)
-        st.plotly_chart(fig, use_container_width=True)
+        # # Create scatter plot
+        # st.write("Scatter Plot: Number of Reviews vs Rating")
+        # fig = px.scatter(df, x='user_ratings_total', y='rating', hover_name='name',
+        #                  labels={'user_ratings_total': 'Number of Reviews', 'rating': 'Rating'},
+        #                  title=f'Rating vs Number of Reviews for {query} in {location}')
+        # fig.update_layout(height=600)
+        # st.plotly_chart(fig, use_container_width=True)
+
+         st.button("Generate Poster"):
+            with st.spinner("Generating poster..."):
+                screenshot_bytes = generate_poster(df_top10, query, location)
+            
+            # Display the image
+            image = Image.open(io.BytesIO(screenshot_bytes))
+            st.image(image, caption="Generated Poster", use_column_width=True)
+
+            # Offer download button for the poster
+            st.download_button(
+                label="Download Poster",
+                data=screenshot_bytes,
+                file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
+                mime="image/png"
+            )
 
         # Download button for full data
         csv = df.to_csv(index=False)
