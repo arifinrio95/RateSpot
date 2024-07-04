@@ -77,19 +77,17 @@ def create_coffee_shops_poster(df, query, location, width=900, bg_color="#C1A87D
     for index, row in df.iterrows():
         stars_html = ''.join([create_star_svg(max(0, min(100, (row['rating'] - i) * 100))) for i in range(5)])
         shops_html += f'''
-        <div class="bg-[#E4D5B7] p-4 rounded-lg shadow-md mb-4">
+        <div class="bg-gray-100 p-4 rounded-lg shadow-md mb-4">
             <div class="flex justify-between items-center">
-                <span class="font-semibold text-xl text-[#4A321E]">{row['rank']}. {row['name']}</span>
+                <span class="font-semibold text-lg text-gray-800">{row['rank']}. {row['name']}</span>
                 <div class="flex items-center">
                     <div class="flex mr-2">{stars_html}</div>
-                    <span class="font-medium text-lg text-[#4A321E]">{row['rating']:.1f}</span>
+                    <span class="font-medium text-lg text-gray-800">{row['rating']:.1f}</span>
                 </div>
             </div>
-            <div class="text-sm text-[#6F4E37] mt-1">{row['user_ratings_total']:,} ratings</div>
+            <div class="text-sm text-gray-600 mt-1">{row['user_ratings_total']:,} ratings</div>
         </div>
         '''
-
-    dynamic_title = f"Top 10 {query} di {location}"
 
     return f'''
     <!DOCTYPE html>
@@ -100,18 +98,19 @@ def create_coffee_shops_poster(df, query, location, width=900, bg_color="#C1A87D
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-            body {{ font-family: 'Inter', sans-serif; margin: 0; padding: 0; }}
-            .poster-container {{ display: inline-block; }} /* Untuk mengapit konten */
+            body {{ font-family: 'Inter', sans-serif; }}
         </style>
     </head>
     <body>
-        <div class="poster-container">
-            <div class="bg-[{bg_color}] p-6 flex flex-col items-center justify-start font-sans" style="width: {width}px;">
-                <h1 class="text-4xl font-bold mb-6 text-[#4A321E] text-center">{dynamic_title}</h1>
-                <div class="space-y-4 w-full max-w-3xl flex-grow">
-                    {shops_html}
+        <div class="poster-container bg-white" style="width: {width}px; height: {int(width * 1.4)}px;">
+            <div class="flex flex-col items-center justify-center h-full">
+                <div class="w-5/6 max-w-2xl">
+                    <h1 class="text-3xl font-bold mb-6 text-gray-900 text-center">Top 10 {query} di {location}</h1>
+                    <div class="space-y-4">
+                        {shops_html}
+                    </div>
+                    <div class="mt-6 text-sm text-gray-500 text-center">Data based on user ratings and reviews</div>
                 </div>
-                <div class="mt-6 text-sm text-[#4A321E]">Data based on user ratings and reviews</div>
             </div>
         </div>
     </body>
@@ -407,12 +406,17 @@ def generate_poster(df, query, location, design, width=900):
             page = browser.new_page()
             page.set_content(html_content)
             
-            content_height = page.evaluate('''() => {
-                const posterContainer = document.querySelector('.poster-container');
-                return posterContainer.getBoundingClientRect().height;
-            }''')
+            if design == 'original':
+                # For original design, use fixed height based on width
+                page.set_viewport_size({"width": width, "height": int(width * 1.4)})
+            else:
+                # For other designs, use the previous dynamic height calculation
+                content_height = page.evaluate('''() => {
+                    const posterContainer = document.querySelector('.poster-container');
+                    return posterContainer.getBoundingClientRect().height;
+                }''')
+                page.set_viewport_size({"width": width, "height": int(content_height)})
             
-            page.set_viewport_size({"width": width, "height": int(content_height)})
             screenshot_bytes = page.locator('.poster-container').screenshot()
             browser.close()
         return screenshot_bytes
