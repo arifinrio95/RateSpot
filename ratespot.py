@@ -222,7 +222,7 @@ def main():
         # fig.update_layout(height=600)
         # st.plotly_chart(fig, use_container_width=True)
 
-         st.button("Generate Poster"):
+        st.button("Generate Poster"):
             with st.spinner("Generating poster..."):
                 screenshot_bytes = generate_poster(df_top10, query, location)
             
