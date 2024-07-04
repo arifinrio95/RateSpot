@@ -101,7 +101,7 @@ def main():
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
         # df['score'] = df['user_ratings_total']*df['rating']
-        df = df.sort_values(by='user_ratings_total', ascending=False)
+        df = df.sort_values(by='rating', ascending=False)
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
 
@@ -124,7 +124,14 @@ def main():
 
         # Display top 10 places
         st.write("Top 10 Places:")
-        st.dataframe(df_top10[['rank', 'name', 'rating', 'user_ratings_total', 'address','price_level']], 
+        df_top10_renamed = df_top10.rename(columns={
+                                'name': 'Nama Tempat',
+                                'rating': 'Rating',
+                                'user_ratings_total': 'Jumlah Ulasan',
+                                'address': 'Alamat',
+                                'price_level': 'Tingkat Harga'
+                            })
+        st.dataframe(df_top10_renamed, 
                      height=400, 
                      use_container_width=True)
 
