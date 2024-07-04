@@ -4,7 +4,48 @@ import time
 import pandas as pd
 import numpy as np
 
-# ... (previous functions remain the same)
+# Function to search for places
+def search_places(api_key, query, location):
+    base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    places = []
+    next_page_token = None
+
+    while True:
+        params = {
+            'query': f'{query} in {location}',
+            'key': api_key
+        }
+        if next_page_token:
+            params['pagetoken'] = next_page_token
+
+        response = requests.get(base_url, params=params)
+        result = response.json()
+
+        if 'results' in result:
+            places.extend(result['results'])
+            st.write(f"Fetched {len(result['results'])} places. Total: {len(places)}")
+
+        if 'next_page_token' in result:
+            next_page_token = result['next_page_token']
+            time.sleep(2)  # Wait for the next_page_token to become valid
+        else:
+            break
+
+    return places
+
+# Function to get place details
+def get_place_details(api_key, place_id):
+    base_url = "https://maps.googleapis.com/maps/api/place/details/json"
+    params = {
+        'place_id': place_id,
+        'fields': 'name,rating,user_ratings_total,formatted_address,formatted_phone_number,website,price_level,opening_hours,reviews',
+        'key': api_key
+    }
+
+    response = requests.get(base_url, params=params)
+    result = response.json()
+
+    return result.get('result', {})
 
 # Main Streamlit app
 def main():
@@ -65,12 +106,13 @@ def main():
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
 
-        # Simplified styling
+        # Display top 10 places
         st.write("Top 10 Places:")
         st.dataframe(df_top10[['rank', 'name', 'rating', 'user_ratings_total', 'address']], 
                      height=400, 
                      use_container_width=True)
 
+        # Download button for full data
         csv = df.to_csv(index=False)
         st.download_button(
             label="Download full data as CSV",
