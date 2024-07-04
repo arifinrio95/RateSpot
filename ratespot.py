@@ -3,74 +3,8 @@ import requests
 import time
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import re
 
-# Function to search for places
-def search_places(api_key, query, location):
-    base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
-    places = []
-    next_page_token = None
-
-    while True:
-        params = {
-            'query': f'{query} in {location}',
-            'key': api_key
-        }
-        if next_page_token:
-            params['pagetoken'] = next_page_token
-
-        response = requests.get(base_url, params=params)
-        result = response.json()
-
-        if 'results' in result:
-            places.extend(result['results'])
-            st.write(f"Fetched {len(result['results'])} places. Total: {len(places)}")
-
-        if 'next_page_token' in result:
-            next_page_token = result['next_page_token']
-            time.sleep(2)  # Wait for the next_page_token to become valid
-        else:
-            break
-
-    return places
-
-# Function to get place details
-def get_place_details(api_key, place_id):
-    base_url = "https://maps.googleapis.com/maps/api/place/details/json"
-    params = {
-        'place_id': place_id,
-        'fields': 'name,rating,user_ratings_total,formatted_address,formatted_phone_number,website,price_level,opening_hours,reviews',
-        'key': api_key
-    }
-
-    response = requests.get(base_url, params=params)
-    result = response.json()
-
-    return result.get('result', {})
-
-# Function to simplify address
-def simplify_address(address):
-    pattern = r'Kec\.?.*?,(.*?),(.*?),'
-    match = re.search(pattern, address)
-    if match:
-        return f"Kec.{match.group(1)},{match.group(2)}".strip()
-    else:
-        return address
-
-# Function to color rating
-def color_rating(val, rank):
-    if rank <= 3:
-        return 'color: green; font-weight: bold'
-    elif rank <= 6:
-        return 'color: orange; font-weight: bold'
-    else:
-        return 'color: red; font-weight: bold'
-
-# Function to create background gradient
-def background_gradient(s, cmap='YlOrRd', low=0, high=0):
-    return [f'background-color: {plt.cm.get_cmap(cmap)(x)}' 
-            for x in (s - s.min()) / (s.max() - s.min())]
+# ... (previous functions remain the same)
 
 # Main Streamlit app
 def main():
@@ -128,27 +62,14 @@ def main():
         st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
 
         df_top10 = df[['name', 'rating', 'user_ratings_total', 'address']].head(10).sort_values(by=['rating'], ascending=False)
-        df_top10['simplified_address'] = df_top10['address'].apply(simplify_address)
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
 
-        columns_to_display = ['rank', 'name', 'rating', 'user_ratings_total', 'simplified_address']
-
-        styled_df = df_top10[columns_to_display].style.apply(background_gradient, subset=['user_ratings_total'], cmap='Blues')\
-                            .apply(lambda x: [color_rating(v, i+1) for i, v in enumerate(x)], subset=['rating'], axis=0)\
-                            .format({'rating': '{:.1f}', 'user_ratings_total': '{:,}'})\
-                            .set_properties(**{'text-align': 'left', 'white-space': 'nowrap', 'overflow': 'hidden', 'text-overflow': 'ellipsis', 'max-width': '300px'})\
-                            .set_table_styles([
-                                {'selector': 'th', 'props': [('background-color', '#4CAF50'), ('color', 'white'), ('font-weight', 'bold'), ('text-align': 'left')]},
-                                {'selector': 'td', 'props': [('padding', '8px')]},
-                                {'selector': 'tr:nth-of-type(odd)', 'props': [('background-color', '#f2f2f2')]},
-                            ])\
-                            .hide(axis='index')
-
-        styled_df.data = styled_df.data.rename(columns={'simplified_address': 'address'})
-
+        # Simplified styling
         st.write("Top 10 Places:")
-        st.write(styled_df.to_html(), unsafe_allow_html=True)
+        st.dataframe(df_top10[['rank', 'name', 'rating', 'user_ratings_total', 'address']], 
+                     height=400, 
+                     use_container_width=True)
 
         csv = df.to_csv(index=False)
         st.download_button(
