@@ -222,21 +222,19 @@ def main():
         # fig.update_layout(height=600)
         # st.plotly_chart(fig, use_container_width=True)
 
-        st.button("Generate Poster"):
-            with st.spinner("Generating poster..."):
-                screenshot_bytes = generate_poster(df_top10, query, location)
+        generate_poster(df_top10, query, location)
             
-            # Display the image
-            image = Image.open(io.BytesIO(screenshot_bytes))
-            st.image(image, caption="Generated Poster", use_column_width=True)
+        # Display the image
+        image = Image.open(io.BytesIO(screenshot_bytes))
+        st.image(image, caption="Generated Poster", use_column_width=True)
 
-            # Offer download button for the poster
-            st.download_button(
-                label="Download Poster",
-                data=screenshot_bytes,
-                file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
-                mime="image/png"
-            )
+        # Offer download button for the poster
+        st.download_button(
+            label="Download Poster",
+            data=screenshot_bytes,
+            file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
+            mime="image/png"
+        )
 
         # Download button for full data
         csv = df.to_csv(index=False)
