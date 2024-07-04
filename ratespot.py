@@ -243,24 +243,24 @@ def main():
         # st.plotly_chart(fig, use_container_width=True)
 
         # Bagian untuk generate poster
-        if st.button("Generate Poster"):
-            try:
-                install_chromium()  # Coba instal Chromium
-                with st.spinner("Generating poster..."):
-                    screenshot_bytes = generate_poster(df_top10, query, location)
-                    if screenshot_bytes:
-                        image = Image.open(io.BytesIO(screenshot_bytes))
-                        st.image(image, caption="Generated Poster", use_column_width=True)
-                        st.download_button(
-                            label="Download Poster",
-                            data=screenshot_bytes,
-                            file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
-                            mime="image/png"
-                        )
-                    else:
-                        st.error("Failed to generate poster.")
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
+        
+        try:
+            install_chromium()  # Coba instal Chromium
+            with st.spinner("Generating poster..."):
+                screenshot_bytes = generate_poster(df_top10, query, location)
+                if screenshot_bytes:
+                    image = Image.open(io.BytesIO(screenshot_bytes))
+                    st.image(image, caption="Generated Poster", use_column_width=True)
+                    st.download_button(
+                        label="Download Poster",
+                        data=screenshot_bytes,
+                        file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_poster.png",
+                        mime="image/png"
+                    )
+                else:
+                    st.error("Failed to generate poster.")
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
                 
 
         # Download button for full data
