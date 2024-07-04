@@ -8,6 +8,8 @@ from playwright.sync_api import sync_playwright
 from PIL import Image
 import io
 
+browser = p.chromium.launch(chromium_sandbox=False)
+
 # Function to search for places
 def search_places(api_key, query, location):
     base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
