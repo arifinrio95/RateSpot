@@ -506,9 +506,9 @@ def main():
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
         # df['score'] = df['user_ratings_total']*df['rating']
-        # df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
+        df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
         # df = df[df['rating'] > 4.2]
-        # df = df[df['user_ratings_total'] > 100]
+        df = df[df['user_ratings_total'] > 100]
 
         # # Lakukan min-max scaling pada kolom user_ratings_total dan rating
         # df['scaled_ratings'] = min_max_scale(df['user_ratings_total'])
@@ -518,10 +518,10 @@ def main():
         # df['score'] = df['scaled_ratings'] * df['scaled_rating']
 
         # Hitung geometric mean dari nilai yang telah di-scale
-        df['score'] = np.sqrt(df['user_ratings_total'] * df['rating'])
+        # df['score'] = np.sqrt(df['user_ratings_total'] * df['rating'])
         
         # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
-        df = df.sort_values('score', ascending=False).reset_index(drop=True)
+        # df = df.sort_values('score', ascending=False).reset_index(drop=True)
 
         
 
