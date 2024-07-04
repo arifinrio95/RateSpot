@@ -5,4 +5,4 @@ numpy
 plotly
 playwright
 pillow
-math
+python-math
