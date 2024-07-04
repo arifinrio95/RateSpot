@@ -76,15 +76,15 @@ def create_coffee_shops_poster(df, query, location):
     for index, row in df.iterrows():
         stars_html = ''.join([create_star_svg(max(0, min(100, (row['rating'] - i) * 100))) for i in range(5)])
         shops_html += f'''
-        <div class="bg-[#E4D5B7] p-6 rounded-lg shadow-md mb-6">
+        <div class="bg-[#E4D5B7] p-4 rounded-lg shadow-md mb-4">
             <div class="flex justify-between items-center">
-                <span class="font-semibold text-2xl text-[#4A321E]">{row['rank']}. {row['name']}</span>
+                <span class="font-semibold text-xl text-[#4A321E]">{row['rank']}. {row['name']}</span>
                 <div class="flex items-center">
                     <div class="flex mr-2">{stars_html}</div>
-                    <span class="font-medium text-xl text-[#4A321E]">{row['rating']:.1f}</span>
+                    <span class="font-medium text-lg text-[#4A321E]">{row['rating']:.1f}</span>
                 </div>
             </div>
-            <div class="text-lg text-[#6F4E37] mt-2">{row['user_ratings_total']:,} ratings</div>
+            <div class="text-sm text-[#6F4E37] mt-1">{row['user_ratings_total']:,} ratings</div>
         </div>
         '''
 
@@ -103,12 +103,12 @@ def create_coffee_shops_poster(df, query, location):
         </style>
     </head>
     <body>
-        <div class="bg-[#C1A87D] p-8 min-h-screen flex flex-col items-center justify-center font-sans" style="min-width: 800px; min-height: 1200px;">
-            <h1 class="text-5xl font-bold mb-10 text-[#4A321E] text-center">{dynamic_title}</h1>
-            <div class="space-y-6 w-full max-w-3xl">
+        <div class="bg-[#C1A87D] p-6 min-h-screen flex flex-col items-center justify-start font-sans" style="width: 900px;">
+            <h1 class="text-4xl font-bold mb-6 text-[#4A321E] text-center">{dynamic_title}</h1>
+            <div class="space-y-4 w-full max-w-3xl">
                 {shops_html}
             </div>
-            <div class="mt-10 text-lg text-[#4A321E]">Data based on user ratings and reviews</div>
+            <div class="mt-6 text-sm text-[#4A321E]">Data based on user ratings and reviews</div>
         </div>
     </body>
     </html>
@@ -135,8 +135,17 @@ def generate_poster(df, query, location):
             browser = p.chromium.launch(chromium_sandbox=False)
             page = browser.new_page()
             page.set_content(html_content)
-            page.set_viewport_size({"width": 900, "height": 1300})
-            screenshot_bytes = page.screenshot()
+            
+            # Set a larger initial viewport
+            page.set_viewport_size({"width": 900, "height": 1500})
+            
+            # Get the full height of the content
+            full_height = page.evaluate('() => document.body.scrollHeight')
+            
+            # Update the viewport and take the screenshot
+            page.set_viewport_size({"width": 900, "height": full_height})
+            screenshot_bytes = page.screenshot(full_page=True)
+            
             browser.close()
         return screenshot_bytes
     except Exception as e:
