@@ -507,7 +507,7 @@ def main():
 
         # df['score'] = df['user_ratings_total']*df['rating']
         df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False])
-        # df = df[df['rating'] > 4.2]
+        df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
 
         # # Lakukan min-max scaling pada kolom user_ratings_total dan rating
