@@ -577,7 +577,7 @@ def main():
 
         st.header("Generated Posters")
         
-        designs = ['original', 'modern', 'colorful', 'minimalist', 'infographic', 'retro']
+        designs = ['minimalist_text','original', 'modern', 'colorful', 'minimalist', 'infographic', 'retro']
         
         for design in designs:
             st.subheader(f"{design.capitalize()} Design")
