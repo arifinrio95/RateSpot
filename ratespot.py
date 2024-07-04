@@ -48,6 +48,9 @@ def get_place_details(api_key, place_id):
 
     return result.get('result', {})
 
+def min_max_scale(series):
+    return (series - series.min()) / (series.max() - series.min())
+
 # Main Streamlit app
 def main():
     st.title("Google Places Search App")
@@ -105,8 +108,17 @@ def main():
         st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
 
         df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
-        df_top10['score'] = df_top10['user_ratings_total']*df_top10['rating']
-        df_top10 = df_top10.sort_values(by=['score'], ascending=False)
+
+        # Lakukan min-max scaling pada kolom user_ratings_total dan rating
+        df_top10['scaled_ratings'] = min_max_scale(df_top10['user_ratings_total'])
+        df_top10['scaled_rating'] = min_max_scale(df_top10['rating'])
+        
+        # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
+        df_top10['score'] = df_top10['scaled_ratings'] * df_top10['scaled_rating']
+        
+        # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
+        df_top10 = df_top10.sort_values('score', ascending=False).reset_index(drop=True)
+
         df_top10 = df_top10.reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
 
