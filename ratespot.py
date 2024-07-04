@@ -9,6 +9,7 @@ from PIL import Image
 import io
 import subprocess
 import sys
+import math
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -71,7 +72,7 @@ def create_star_svg(percentage):
     </svg>
     '''
 
-def create_coffee_shops_poster(df, query, location):
+def create_coffee_shops_poster(df, query, location, width=900, bg_color="#C1A87D"):
     shops_html = ""
     for index, row in df.iterrows():
         stars_html = ''.join([create_star_svg(max(0, min(100, (row['rating'] - i) * 100))) for i in range(5)])
@@ -99,16 +100,19 @@ def create_coffee_shops_poster(df, query, location):
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-            body {{ font-family: 'Inter', sans-serif; }}
+            body {{ font-family: 'Inter', sans-serif; margin: 0; padding: 0; }}
+            .poster-container {{ display: inline-block; }} /* Untuk mengapit konten */
         </style>
     </head>
     <body>
-        <div class="bg-[#C1A87D] p-6 min-h-screen flex flex-col items-center justify-start font-sans" style="width: 900px;">
-            <h1 class="text-4xl font-bold mb-6 text-[#4A321E] text-center">{dynamic_title}</h1>
-            <div class="space-y-4 w-full max-w-3xl">
-                {shops_html}
+        <div class="poster-container">
+            <div class="bg-[{bg_color}] p-6 flex flex-col items-center justify-start font-sans" style="width: {width}px;">
+                <h1 class="text-4xl font-bold mb-6 text-[#4A321E] text-center">{dynamic_title}</h1>
+                <div class="space-y-4 w-full max-w-3xl flex-grow">
+                    {shops_html}
+                </div>
+                <div class="mt-6 text-sm text-[#4A321E]">Data based on user ratings and reviews</div>
             </div>
-            <div class="mt-6 text-sm text-[#4A321E]">Data based on user ratings and reviews</div>
         </div>
     </body>
     </html>
@@ -128,23 +132,25 @@ def install_chromium():
         raise
         
 # Fungsi untuk generate poster
-def generate_poster(df, query, location):
-    html_content = create_coffee_shops_poster(df, query, location)
+def generate_poster(df, query, location, width=900, bg_color="#C1A87D"):
+    html_content = create_coffee_shops_poster(df, query, location, width, bg_color)
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(chromium_sandbox=False)
             page = browser.new_page()
             page.set_content(html_content)
             
-            # Set a larger initial viewport
-            page.set_viewport_size({"width": 900, "height": 1500})
+            # Evaluasi tinggi konten
+            content_height = page.evaluate('''() => {
+                const posterContainer = document.querySelector('.poster-container');
+                return posterContainer.getBoundingClientRect().height;
+            }''')
             
-            # Get the full height of the content
-            full_height = page.evaluate('() => document.body.scrollHeight')
+            # Set viewport ke ukuran konten yang tepat
+            page.set_viewport_size({"width": width, "height": math.ceil(content_height)})
             
-            # Update the viewport and take the screenshot
-            page.set_viewport_size({"width": 900, "height": 1500})
-            screenshot_bytes = page.screenshot(full_page=True)
+            # Ambil screenshot dari elemen poster-container saja
+            screenshot_bytes = page.locator('.poster-container').screenshot()
             
             browser.close()
         return screenshot_bytes
