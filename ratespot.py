@@ -625,7 +625,7 @@ def main():
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
         # df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
-        df = df.sort_values(by='user_ratings_total', ascending=False, False).reset_index(drop=True)
+        df = df.sort_values(by='user_ratings_total', ascending=False).reset_index(drop=True)
 
         df_top10 = df.head(10)
         df_top10 = df_top10.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
