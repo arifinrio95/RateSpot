@@ -505,8 +505,9 @@ def main():
         df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
-        df['score'] = df['user_ratings_total']*df['rating']
-        df = df.sort_values('score', ascending=False).reset_index(drop=True)
+        # df['score'] = df['user_ratings_total']*df['rating']
+        # df = df.sort_values('score', ascending=False).reset_index(drop=True)
+        df = df.sort_values('user_ratings_total', ascending=False).reset_index(drop=True)
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
         df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
