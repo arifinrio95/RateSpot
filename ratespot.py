@@ -360,8 +360,13 @@ def create_infographic_icon_poster(df, query, location, width=900):
     </html>
     '''
 
-def create_minimalist_text_poster(query, location, width=900):
+def create_minimalist_text_poster(query, location, width=900, photo_bytes=None):
     height = int(width * 1.4)  # Mempertahankan rasio portrait
+
+    if photo_bytes:
+        bg_image = f'data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}'
+    else:
+        bg_image = ''  # Fallback jika tidak ada foto
 
     return f'''
     <!DOCTYPE html>
@@ -374,21 +379,26 @@ def create_minimalist_text_poster(query, location, width=900):
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:ital,wght@0,400;1,300&display=swap');
             body {{ font-family: 'Roboto', sans-serif; }}
             .title {{ font-family: 'Playfair Display', serif; }}
+            .bg-image {{
+                background-image: url('{bg_image}');
+                background-size: cover;
+                background-position: center;
+            }}
         </style>
     </head>
     <body>
-        <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
-            <div class="flex flex-col justify-center h-full pl-12"> <!-- Adjusted padding for left alignment -->
-                <div class="max-w-lg"> <!-- Limit max width for better layout control -->
-                    <h1 class="title text-5xl font-bold mb-2 text-gray-900">{query} terbaik</h1>
-                    <h2 class="title text-4xl font-bold mb-6 text-gray-800">di {location}</h2>
-                    <p class="text-lg italic text-gray-600">Menurut Google Reviews</p>
-                </div>
+        <div class="poster-container bg-image relative" style="width: {width}px; height: {height}px;">
+            <div class="absolute inset-0 bg-black opacity-50"></div>
+            <div class="relative flex flex-col justify-center items-center h-full text-center px-8">
+                <h1 class="title text-7xl font-bold mb-4 text-white">{query} terbaik</h1>
+                <h2 class="title text-6xl font-bold mb-8 text-white">di {location}</h2>
+                <p class="text-3xl italic text-white">Menurut Google Reviews</p>
             </div>
         </div>
     </body>
     </html>
     '''
+
 
 def create_retro_grid_poster(df, query, location, width=900):
     shops_html = ""
@@ -680,6 +690,12 @@ def main():
         # except Exception as e:
         #     st.error(f"An error occurred: {str(e)}")
 
+        # Ambil foto dari tempat pertama untuk poster minimalis
+        first_place_photo = None
+        if df_top10.iloc[0]['photo_reference']:
+            first_place_photo = get_place_photo(api_key, df_top10.iloc[0]['photo_reference'], max_width=1600)
+
+
         st.header("Generated Posters")
         
         designs = ['minimalist_text','original']
@@ -688,18 +704,17 @@ def main():
             # st.subheader(f"{design.capitalize()} Design")
             with st.spinner(f"Generating {design} poster..."):
                 poster_bytes = generate_poster(df_top10, query, location, design)
+                if design == 'minimalist_text':
+                    poster_bytes = generate_poster(df_top10, query, location, design, photo_bytes=first_place_photo)
+                else:
+                    poster_bytes = generate_poster(df_top10, query, location, design)
+                
                 if poster_bytes:
                     image = Image.open(io.BytesIO(poster_bytes))
                     st.image(image, caption=f"{design.capitalize()} Poster", use_column_width=True)
-                    # st.download_button(
-                    #     label=f"Download {design.capitalize()} Poster",
-                    #     data=poster_bytes,
-                    #     file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_{design}_poster.png",
-                    #     mime="image/png"
-                    # )
                 else:
                     st.error(f"Failed to generate {design} poster.")
-
+                    
         # st.header("Individual Place Posters")
         for index, place in df_top10.iterrows():
             st.subheader(f"{index + 1}. {place['name']}")
