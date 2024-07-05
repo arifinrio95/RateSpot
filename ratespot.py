@@ -41,7 +41,7 @@ def search_places(api_key, query, location):
                     'photo_reference': place.get('photos', [{}])[0].get('photo_reference')
                 }
                 places.append(place_data)
-                st.write(f"Place: {place_data['name']}, Place ID: {place_data['place_id']}, Photo Reference: {'Available' if place_data['photo_reference'] else 'Not available'}")
+                # st.write(f"Place: {place_data['name']}, Place ID: {place_data['place_id']}, Photo Reference: {'Available' if place_data['photo_reference'] else 'Not available'}")
 
         if 'next_page_token' in result:
             next_page_token = result['next_page_token']
@@ -701,15 +701,15 @@ def main():
             st.subheader(f"{index + 1}. {place['name']}")
             
             photo_reference = place.get('photo_reference')
-            # if photo_reference:
-            #     st.write(f"Attempting to fetch photo for {place['name']}...")
-            #     photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
-            #     if photo_bytes:
-            #         st.image(photo_bytes, caption=f"Photo of {place['name']}")
-            #     else:
-            #         st.warning(f"Could not retrieve photo for {place['name']}")
-            # else:
-            #     st.warning(f"No photo reference available for {place['name']}")
+            if photo_reference:
+                # st.write(f"Attempting to fetch photo for {place['name']}...")
+                photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
+                # if photo_bytes:
+                #     st.image(photo_bytes, caption=f"Photo of {place['name']}")
+                # else:
+                #     st.warning(f"Could not retrieve photo for {place['name']}")
+            else:
+                st.warning(f"No photo reference available for {place['name']}")
             
             # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
