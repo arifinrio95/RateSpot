@@ -537,20 +537,18 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
         </style>
     </head>
     <body>
-        <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
-            <div class="flex flex-col h-full">
-                <div class="h-3/5 overflow-hidden">
+        <div class="poster-container bg-white flex items-center justify-center" style="width: {width}px; height: {height}px;">
+            <div class="w-5/6 max-w-4xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
+                <div class="aspect-w-16 aspect-h-9 overflow-hidden">
                     {photo_html}
                 </div>
-                <div class="h-2/5 p-6 flex flex-col justify-between bg-gray-100">
-                    <div>
-                        <h1 class="title text-4xl font-bold text-gray-900 mb-2 leading-tight">{place['name']}</h1>
-                        <div class="flex items-center mb-2">
-                            <div class="flex mr-2">{stars_html}</div>
-                            <span class="text-xl font-semibold text-gray-700">({place['rating']})</span>
-                        </div>
-                        <p class="text-lg text-gray-600 mb-2">{place['user_ratings_total']} reviews</p>
+                <div class="p-6">
+                    <h1 class="title text-3xl font-bold text-gray-900 mb-2 leading-tight">{place['name']}</h1>
+                    <div class="flex items-center mb-2">
+                        <div class="flex mr-2">{stars_html}</div>
+                        <span class="text-xl font-semibold text-gray-700">({place['rating']})</span>
                     </div>
+                    <p class="text-lg text-gray-600 mb-2">{place['user_ratings_total']} reviews</p>
                     <p class="text-md text-gray-700 leading-snug">{place['address']}</p>
                 </div>
             </div>
@@ -696,7 +694,7 @@ def main():
                 else:
                     st.error(f"Failed to generate {design} poster.")
 
-        st.header("Individual Place Posters")
+        # st.header("Individual Place Posters")
         for index, place in df_top10.iterrows():
             st.subheader(f"{index + 1}. {place['name']}")
             
