@@ -66,15 +66,25 @@ def get_place_details(api_key, place_id):
 
 def get_place_photo(api_key, photo_reference, max_width=400):
     if not photo_reference:
+        st.warning("No photo reference available for this place.")
         return None
-    base_url = "https://maps.googleapis.com/maps/api/place/photo"
-    params = {
-        'maxwidth': max_width,
-        'photoreference': photo_reference,
-        'key': api_key
-    }
-    response = requests.get(base_url, params=params)
-    return response.content if response.status_code == 200 else None
+    
+    photo_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth={max_width}&photoreference={photo_reference}&key={api_key}"
+    
+    try:
+        response = requests.get(photo_url)
+        response.raise_for_status()  # Akan raise exception untuk status code error
+        
+        if response.headers.get('content-type', '').startswith('image'):
+            st.success(f"Successfully retrieved photo for reference: {photo_reference[:10]}...")
+            return response.content
+        else:
+            st.warning(f"Received non-image response for photo reference: {photo_reference[:10]}...")
+            return None
+    
+    except requests.RequestException as e:
+        st.error(f"Error fetching photo: {str(e)}")
+        return None
 
 # Function to get place details
 # def get_place_details(api_key, place_id):
@@ -697,11 +707,21 @@ def main():
                 'price_level': place.get('price_level', 'N/A'),
             }
             
-            # Ambil foto tempat jika ada photo_reference
-            photo_bytes = get_place_photo(api_key, place.get('photo_reference')) if 'photo_reference' in place else None
+            # Ambil dan tampilkan foto
+            photo_reference = place.get('photo_reference')
+            if photo_reference:
+                st.write(f"Attempting to fetch photo for {place['name']}...")
+                photo_bytes = get_place_photo(api_key, photo_reference)
+                if photo_bytes:
+                    st.image(photo_bytes, caption=f"Photo of {place['name']}")
+                else:
+                    st.warning(f"Could not retrieve photo for {place['name']}")
+            else:
+                st.warning(f"No photo reference available for {place['name']}")
             
+            # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
-                individual_poster_bytes = generate_individual_poster(place_data, photo_bytes)
+                individual_poster_bytes = generate_individual_poster(place_data, photo_bytes if 'photo_bytes' in locals() else None)
                 if individual_poster_bytes:
                     image = Image.open(io.BytesIO(individual_poster_bytes))
                     st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
