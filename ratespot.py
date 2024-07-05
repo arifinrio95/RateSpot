@@ -30,16 +30,16 @@ def search_places(api_key, query, location):
 
         if 'results' in result:
             for place in result['results']:
-                photo_reference = place.get('photos', [{}])[0].get('photo_reference')
                 place_data = {
+                    'place_id': place.get('place_id', 'N/A'),
                     'name': place.get('name', 'N/A'),
                     'rating': place.get('rating', 'N/A'),
                     'user_ratings_total': place.get('user_ratings_total', 0),
                     'address': place.get('formatted_address', 'N/A'),
-                    'photo_reference': photo_reference,
+                    'photo_reference': place.get('photos', [{}])[0].get('photo_reference')
                 }
                 places.append(place_data)
-                st.write(f"Place: {place_data['name']}, Photo Reference: {'Available' if photo_reference else 'Not available'}")
+                st.write(f"Place: {place_data['name']}, Place ID: {place_data['place_id']}, Photo Reference: {'Available' if place_data['photo_reference'] else 'Not available'}")
 
         if 'next_page_token' in result:
             next_page_token = result['next_page_token']
@@ -48,6 +48,7 @@ def search_places(api_key, query, location):
             break
 
     return places
+
     
 def get_place_details(api_key, place_id):
     base_url = "https://maps.googleapis.com/maps/api/place/details/json"
@@ -584,19 +585,24 @@ def main():
         progress_bar = st.progress(0)
         for i, place in enumerate(places, 1):
             progress_bar.progress(i / len(places))
-            details = get_place_details(api_key, place['place_id'])
+            place_id = place.get('place_id')
+            if place_id != 'N/A':
+                details = get_place_details(api_key, place_id)
+            else:
+                details = {}
 
             place_data = {
-                'name': details.get('name', 'N/A'),
-                'rating': details.get('rating', np.nan),
-                'user_ratings_total': details.get('user_ratings_total', 0),
-                'address': details.get('formatted_address', 'N/A'),
+                'name': details.get('name', place.get('name', 'N/A')),
+                'rating': details.get('rating', place.get('rating', np.nan)),
+                'user_ratings_total': details.get('user_ratings_total', place.get('user_ratings_total', 0)),
+                'address': details.get('formatted_address', place.get('address', 'N/A')),
                 'phone': details.get('formatted_phone_number', 'N/A'),
                 'website': details.get('website', 'N/A'),
                 'price_level': details.get('price_level', 'N/A'),
                 'open_now': details.get('opening_hours', {}).get('open_now', 'N/A'),
-                'latitude': place.get('latitude', 'N/A'),  # Menggunakan .get() untuk latitude
-                'longitude': place.get('longitude', 'N/A'),  # Menggunakan .get() untuk longitude
+                'latitude': place.get('geometry', {}).get('location', {}).get('lat', 'N/A'),
+                'longitude': place.get('geometry', {}).get('location', {}).get('lng', 'N/A'),
+                'photo_reference': place.get('photo_reference')
             }
 
             if 'reviews' in details and len(details['reviews']) > 0:
