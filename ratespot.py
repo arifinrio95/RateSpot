@@ -543,16 +543,16 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
     </head>
     <body>
         <div class="poster-container bg-white flex items-center justify-center" style="width: {width}px; height: {height}px;">
-            <div class="w-4/5 max-w-3xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
+            <div class="w-[95%] max-w-5xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
                 {photo_html}
                 <div class="p-6">
-                    <h1 class="title text-3xl font-bold text-gray-900 mb-2 leading-tight">{place['name']}</h1>
-                    <div class="flex items-center mb-2">
-                        <div class="flex mr-2">{stars_html}</div>
-                        <span class="text-xl font-semibold text-gray-700">({place['rating']})</span>
+                    <h1 class="title text-4xl font-bold text-gray-900 mb-3 leading-tight">{place['name']}</h1>
+                    <div class="flex items-center mb-3">
+                        <div class="flex mr-2 scale-110">{stars_html}</div>
+                        <span class="text-2xl font-semibold text-gray-700">({place['rating']})</span>
                     </div>
-                    <p class="text-lg text-gray-600 mb-2">{place['user_ratings_total']} reviews</p>
-                    <p class="text-md text-gray-700 leading-snug">{place['address']}</p>
+                    <p class="text-xl text-gray-600 mb-3">{place['user_ratings_total']} reviews</p>
+                    <p class="text-lg text-gray-700 leading-snug">{place['address']}</p>
                 </div>
             </div>
         </div>
