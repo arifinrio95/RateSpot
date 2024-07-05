@@ -30,27 +30,25 @@ def search_places(api_key, query, location):
 
         if 'results' in result:
             for place in result['results']:
+                photo_reference = place.get('photos', [{}])[0].get('photo_reference')
                 place_data = {
-                    'place_id': place.get('place_id', 'N/A'),
                     'name': place.get('name', 'N/A'),
                     'rating': place.get('rating', 'N/A'),
                     'user_ratings_total': place.get('user_ratings_total', 0),
                     'address': place.get('formatted_address', 'N/A'),
-                    'photo_reference': place.get('photos', [{}])[0].get('photo_reference', None),
-                    'latitude': place.get('geometry', {}).get('location', {}).get('lat', 'N/A'),
-                    'longitude': place.get('geometry', {}).get('location', {}).get('lng', 'N/A'),
+                    'photo_reference': photo_reference,
                 }
                 places.append(place_data)
-            st.write(f"Fetched {len(result['results'])} places. Total: {len(places)}")
+                st.write(f"Place: {place_data['name']}, Photo Reference: {'Available' if photo_reference else 'Not available'}")
 
         if 'next_page_token' in result:
             next_page_token = result['next_page_token']
-            time.sleep(2)  # Wait for the next_page_token to become valid
+            time.sleep(2)
         else:
             break
 
     return places
-
+    
 def get_place_details(api_key, place_id):
     base_url = "https://maps.googleapis.com/maps/api/place/details/json"
     params = {
@@ -78,13 +76,17 @@ def get_place_photo(api_key, photo_reference, max_width=400):
     
     try:
         response = requests.get(base_url, params=params)
-        response.raise_for_status()  # Akan raise exception untuk status code error
+        st.write(f"Photo request URL: {response.url}")  # Print URL for debugging (remove API key manually)
+        st.write(f"Response status code: {response.status_code}")
+        st.write(f"Response headers: {response.headers}")
+        
+        response.raise_for_status()
         
         if response.headers.get('content-type', '').startswith('image'):
             st.success(f"Successfully retrieved photo for reference: {photo_reference[:10]}...")
             return response.content
         else:
-            st.warning(f"Received non-image response for photo reference: {photo_reference[:10]}...")
+            st.warning(f"Received non-image response. Content-Type: {response.headers.get('content-type')}")
             return None
     
     except requests.RequestException as e:
@@ -637,6 +639,10 @@ def main():
         df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
         df_top10 = df_top10.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
         df_top10['rank'] = df_top10.index + 1
+
+        st.write("Checking df_top10 for photo references:")
+        for index, place in df_top10.iterrows():
+            st.write(f"{place['name']}: {'Has photo_reference' if 'photo_reference' in place and place['photo_reference'] else 'No photo_reference'}")
 
         # Display top 10 places
         st.header("Top 10 Places:")
