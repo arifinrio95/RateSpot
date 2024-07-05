@@ -519,9 +519,14 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
     stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
     
     if photo_bytes:
-        photo_html = f'<img src="data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}" class="w-full h-full object-cover" alt="{place["name"]}">'
+        photo_html = f'''
+        <div class="w-full pb-[100%] relative overflow-hidden">
+            <img src="data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}" 
+                 class="absolute inset-0 w-full h-full object-cover" alt="{place["name"]}">
+        </div>
+        '''
     else:
-        photo_html = '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Image Available</div>'
+        photo_html = '<div class="w-full pb-[100%] relative bg-gray-200 flex items-center justify-center"><span class="absolute text-gray-500">No Image Available</span></div>'
     
     return f'''
     <!DOCTYPE html>
@@ -538,10 +543,8 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
     </head>
     <body>
         <div class="poster-container bg-white flex items-center justify-center" style="width: {width}px; height: {height}px;">
-            <div class="w-5/6 max-w-4xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
-                <div class="aspect-w-16 aspect-h-9 overflow-hidden">
-                    {photo_html}
-                </div>
+            <div class="w-4/5 max-w-3xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
+                {photo_html}
                 <div class="p-6">
                     <h1 class="title text-3xl font-bold text-gray-900 mb-2 leading-tight">{place['name']}</h1>
                     <div class="flex items-center mb-2">
