@@ -12,6 +12,7 @@ import subprocess
 import sys
 import math
 import base64
+import zipfile
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -696,15 +697,20 @@ def main():
         if df_top10.iloc[0]['photo_reference']:
             first_place_photo = get_place_photo(api_key, df_top10.iloc[0]['photo_reference'], max_width=1600)
 
-
+        # Membuat list untuk menyimpan semua poster
+        all_posters = []
+        
         st.header("Generated Posters")
         
-        designs = ['minimalist_text','original']
+        designs = ['minimalist_text', 'original']
+        
+        # Ambil foto dari tempat pertama untuk poster minimalis
+        first_place_photo = None
+        if df_top10.iloc[0]['photo_reference']:
+            first_place_photo = get_place_photo(api_key, df_top10.iloc[0]['photo_reference'], max_width=1600)
         
         for design in designs:
-            # st.subheader(f"{design.capitalize()} Design")
             with st.spinner(f"Generating {design} poster..."):
-                poster_bytes = generate_poster(df_top10, query, location, design)
                 if design == 'minimalist_text':
                     poster_bytes = generate_poster(df_top10, query, location, design, photo_bytes=first_place_photo)
                 else:
@@ -713,39 +719,42 @@ def main():
                 if poster_bytes:
                     image = Image.open(io.BytesIO(poster_bytes))
                     st.image(image, caption=f"{design.capitalize()} Poster", use_column_width=True)
+                    all_posters.append((f"{design}_poster.png", poster_bytes))
                 else:
                     st.error(f"Failed to generate {design} poster.")
-                    
-        # st.header("Individual Place Posters")
+
         for index, place in df_top10.iterrows():
             st.subheader(f"{index + 1}. {place['name']}")
             
             photo_reference = place.get('photo_reference')
             if photo_reference:
-                # st.write(f"Attempting to fetch photo for {place['name']}...")
                 photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
-                # if photo_bytes:
-                #     st.image(photo_bytes, caption=f"Photo of {place['name']}")
-                # else:
-                #     st.warning(f"Could not retrieve photo for {place['name']}")
             else:
+                photo_bytes = None
                 st.warning(f"No photo reference available for {place['name']}")
             
-            # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
-                individual_poster_bytes = generate_individual_poster(place, photo_bytes if 'photo_bytes' in locals() else None)
+                individual_poster_bytes = generate_individual_poster(place, photo_bytes)
                 if individual_poster_bytes:
                     image = Image.open(io.BytesIO(individual_poster_bytes))
                     st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
-                    st.download_button(
-                        label=f"Download {place['name']} Poster",
-                        data=individual_poster_bytes,
-                        file_name=f"{place['name'].lower().replace(' ', '_')}_poster.png",
-                        mime="image/png",
-                        key=f"download_button_{index}"  # Menambahkan kunci unik
-                    )
+                    all_posters.append((f"{place['name'].lower().replace(' ', '_')}_poster.png", individual_poster_bytes))
                 else:
                     st.error(f"Failed to generate poster for {place['name']}")
+
+        # Membuat file zip yang berisi semua poster
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+            for file_name, file_bytes in all_posters:
+                zip_file.writestr(file_name, file_bytes)
+        
+        # Tombol download untuk semua poster
+        st.download_button(
+            label="Download All Posters",
+            data=zip_buffer.getvalue(),
+            file_name=f"all_posters_{query.lower()}_{location.lower().replace(' ', '_')}.zip",
+            mime="application/zip"
+        )
 
         
         # Download button for full data
