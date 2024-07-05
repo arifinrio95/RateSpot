@@ -602,16 +602,8 @@ def main():
                 'open_now': details.get('opening_hours', {}).get('open_now', 'N/A'),
                 'latitude': place.get('geometry', {}).get('location', {}).get('lat', 'N/A'),
                 'longitude': place.get('geometry', {}).get('location', {}).get('lng', 'N/A'),
-                'photo_reference': place.get('photo_reference')
+                'photo_reference': place.get('photo_reference')  # Pastikan ini ada
             }
-
-            if 'reviews' in details and len(details['reviews']) > 0:
-                first_review = details['reviews'][0]
-                place_data.update({
-                    'review_rating': first_review.get('rating', np.nan),
-                    'review_text': first_review.get('text', 'N/A')[:100] + '...',
-                    'review_time': first_review.get('relative_time_description', 'N/A')
-                })
 
             data.append(place_data)
 
@@ -619,36 +611,19 @@ def main():
         df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
         df['user_ratings_total'] = pd.to_numeric(df['user_ratings_total'], errors='coerce')
 
-        # df['score'] = df['user_ratings_total']*df['rating']
-        # df = df.sort_values('score', ascending=False).reset_index(drop=True)
-        df = df.sort_values('user_ratings_total', ascending=False).reset_index(drop=True)
+        # Sorting and filtering
         df = df[df['rating'] > 4.2]
         df = df[df['user_ratings_total'] > 100]
         df = df.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
-        # # Lakukan min-max scaling pada kolom user_ratings_total dan rating
-        # df['scaled_ratings'] = min_max_scale(df['user_ratings_total'])
-        # df['scaled_rating'] = min_max_scale(df['rating'])
-        
-        # # Hitung skor berdasarkan perkalian kedua nilai yang telah di-scale
-        # df['score'] = df['scaled_ratings'] * df['scaled_rating']
 
-        # Hitung geometric mean dari nilai yang telah di-scale
-        # df['score'] = np.sqrt(df['user_ratings_total'] * df['rating'])
-        
-        # Urutkan dataframe berdasarkan skor, dari yang tertinggi ke terendah
-        # df = df.sort_values('score', ascending=False).reset_index(drop=True)
-
-        
-
-        # st.write(f"\nTotal places after filtering (rating > 4.2 and user_ratings_total > 100): {len(df)}")
-
-        df_top10 = df[['name', 'rating', 'user_ratings_total', 'address','price_level']].head(10)
-        df_top10 = df_top10.sort_values(by=['rating', 'user_ratings_total'], ascending=[False, False]).reset_index(drop=True)
+        df_top10 = df.head(10)
         df_top10['rank'] = df_top10.index + 1
 
+        st.header("Top 10 Places:")
         st.write("Checking df_top10 for photo references:")
         for index, place in df_top10.iterrows():
-            st.write(f"{place['name']}: {'Has photo_reference' if 'photo_reference' in place and place['photo_reference'] else 'No photo_reference'}")
+            st.write(f"{place['name']}: {'Has photo_reference' if place['photo_reference'] else 'No photo_reference'}")
+            # st.write(f"{place['name']}: {'Has photo_reference' if 'photo_reference' in place and place['photo_reference'] else 'No photo_reference'}")
 
         # Display top 10 places
         st.header("Top 10 Places:")
