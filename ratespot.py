@@ -10,6 +10,7 @@ import io
 import subprocess
 import sys
 import math
+import base64
 
 # Function to search for places
 def search_places(api_key, query, location):
@@ -514,7 +515,10 @@ def create_individual_place_poster(place, photo_bytes, width=900):
     height = int(width * 1.4)  # Mempertahankan rasio portrait
     stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
     
-    photo_html = f'<img src="data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}" class="w-full h-full object-cover" alt="{place["name"]}">' if photo_bytes else '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Image Available</div>'
+    if photo_bytes:
+        photo_html = f'<img src="data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}" class="w-full h-full object-cover" alt="{place["name"]}">'
+    else:
+        photo_html = '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Image Available</div>'
     
     return f'''
     <!DOCTYPE html>
