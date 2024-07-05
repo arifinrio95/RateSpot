@@ -7,6 +7,7 @@ import plotly.express as px
 from playwright.sync_api import sync_playwright
 from PIL import Image
 import io
+from io import BytesIO
 import subprocess
 import sys
 import math
