@@ -514,7 +514,7 @@ def generate_poster(df, query, location, design, width=900):
         st.error(f"Error generating {design} poster: {str(e)}")
         return None
 
-def create_individual_place_poster(place, photo_bytes, width=1200):  # Meningkatkan lebar poster
+def create_individual_place_poster(place, photo_bytes, width=1200):
     height = int(width * 1.4)
     stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
     
@@ -538,18 +538,18 @@ def create_individual_place_poster(place, photo_bytes, width=1200):  # Meningkat
     </head>
     <body>
         <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
-            <div class="flex flex-col h-full">
-                <div class="h-1/2 overflow-hidden">
+            <div class="flex flex-col h-full p-10">
+                <div class="h-2/5 overflow-hidden rounded-lg shadow-lg">
                     {photo_html}
                 </div>
-                <div class="h-1/2 p-8 flex flex-col justify-center">
-                    <h1 class="title text-4xl font-bold mb-4 text-gray-900">{place['name']}</h1>
-                    <div class="flex items-center mb-2">
-                        <div class="flex mr-2">{stars_html}</div>
-                        <span class="text-lg text-gray-700">({place['rating']})</span>
+                <div class="h-3/5 flex flex-col justify-center space-y-6">
+                    <h1 class="title text-6xl font-bold text-gray-900">{place['name']}</h1>
+                    <div class="flex items-center">
+                        <div class="flex mr-4 scale-150">{stars_html}</div>
+                        <span class="text-3xl text-gray-700">({place['rating']})</span>
                     </div>
-                    <p class="text-lg text-gray-600 mb-4">{place['user_ratings_total']} reviews</p>
-                    <p class="text-md text-gray-700">{place['address']}</p>
+                    <p class="text-3xl text-gray-600">{place['user_ratings_total']} reviews</p>
+                    <p class="text-2xl text-gray-700">{place['address']}</p>
                 </div>
             </div>
         </div>
@@ -557,7 +557,7 @@ def create_individual_place_poster(place, photo_bytes, width=1200):  # Meningkat
     </html>
     '''
 
-def generate_individual_poster(place, photo_bytes, width=1200):  # Meningkatkan lebar poster
+def generate_individual_poster(place, photo_bytes, width=1200):
     html_content = create_individual_place_poster(place, photo_bytes, width)
     try:
         with sync_playwright() as p:
