@@ -558,7 +558,10 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
             <div class="w-[95%] max-w-5xl bg-gray-100 rounded-lg overflow-hidden shadow-lg">
                 {photo_html}
                 <div class="p-6">
-                    <h1 class="title text-4xl font-bold text-gray-900 mb-3 leading-tight">{place['name']}</h1>
+                    <div class="flex items-center justify-between mb-3">
+                        <h1 class="title text-4xl font-bold text-gray-900 leading-tight">{place['name']}</h1>
+                        <span class="text-3xl font-bold text-gray-700">#{place['rank']}</span>
+                    </div>
                     <div class="flex items-center mb-3">
                         <div class="flex mr-2 scale-110">{stars_html}</div>
                         <span class="text-2xl font-semibold text-gray-700">({place['rating']})</span>
@@ -728,7 +731,7 @@ def main():
             
             photo_reference = place.get('photo_reference')
             if photo_reference:
-                photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
+                photo_bytes = get_place_photo(api_key, photo_reference, max_width=1600)
             else:
                 photo_bytes = None
                 st.warning(f"No photo reference available for {place['name']}")
@@ -738,7 +741,7 @@ def main():
                 if individual_poster_bytes:
                     image = Image.open(io.BytesIO(individual_poster_bytes))
                     st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
-                    all_posters.append((f"{place['name'].lower().replace(' ', '_')}_poster.png", individual_poster_bytes))
+                    all_posters.append((f"{place['rank']:02d}_{place['name'].lower().replace(' ', '_')}_poster.png", individual_poster_bytes))
                 else:
                     st.error(f"Failed to generate poster for {place['name']}")
 
