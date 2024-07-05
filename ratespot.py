@@ -538,20 +538,20 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
     </head>
     <body>
         <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
-            <div class="flex flex-col h-full p-8">
-                <div class="h-2/5 overflow-hidden rounded-lg shadow-lg mb-6">
+            <div class="flex flex-col h-full">
+                <div class="h-3/5 overflow-hidden">
                     {photo_html}
                 </div>
-                <div class="flex-grow flex flex-col justify-between">
-                    <h1 class="title text-5xl font-bold text-gray-900 mb-4 leading-tight">{place['name']}</h1>
-                    <div class="space-y-4">
-                        <div class="flex items-center">
-                            <div class="flex mr-4 scale-125">{stars_html}</div>
-                            <span class="text-2xl text-gray-700">({place['rating']})</span>
+                <div class="h-2/5 p-6 flex flex-col justify-between bg-gray-100">
+                    <div>
+                        <h1 class="title text-4xl font-bold text-gray-900 mb-2 leading-tight">{place['name']}</h1>
+                        <div class="flex items-center mb-2">
+                            <div class="flex mr-2">{stars_html}</div>
+                            <span class="text-xl font-semibold text-gray-700">({place['rating']})</span>
                         </div>
-                        <p class="text-2xl text-gray-600">{place['user_ratings_total']} reviews</p>
-                        <p class="text-xl text-gray-700 leading-relaxed">{place['address']}</p>
+                        <p class="text-lg text-gray-600 mb-2">{place['user_ratings_total']} reviews</p>
                     </div>
+                    <p class="text-md text-gray-700 leading-snug">{place['address']}</p>
                 </div>
             </div>
         </div>
@@ -628,15 +628,15 @@ def main():
         df_top10 = df.head(10)
         df_top10['rank'] = df_top10.index + 1
 
-        st.header("Top 10 Places:")
-        st.write("Checking df_top10 for photo references:")
+        # st.header("Top 10 Places:")
+        # st.write("Checking df_top10 for photo references:")
         # for index, place in df_top10.iterrows():
         #     st.write(f"{place['name']}: {'Has photo_reference' if place['photo_reference'] else 'No photo_reference'}")
             # st.write(f"{place['name']}: {'Has photo_reference' if 'photo_reference' in place and place['photo_reference'] else 'No photo_reference'}")
 
         # Display top 10 places
         st.header("Top 10 Places:")
-        st.write("The top 10 places are selected based on criteria of having a rating above 4.2 and more than 100 reviews. This list is then sorted according to the Geometric Mean of rating value and number of reviews.")
+        # st.write("The top 10 places are selected based on criteria of having a rating above 4.2 and more than 100 reviews. This list is then sorted according to the Geometric Mean of rating value and number of reviews.")
         df_top10_renamed = df_top10.rename(columns={
                                 'name': 'Nama Tempat',
                                 'rating': 'Rating',
@@ -681,18 +681,18 @@ def main():
         designs = ['minimalist_text','original']
         
         for design in designs:
-            st.subheader(f"{design.capitalize()} Design")
+            # st.subheader(f"{design.capitalize()} Design")
             with st.spinner(f"Generating {design} poster..."):
                 poster_bytes = generate_poster(df_top10, query, location, design)
                 if poster_bytes:
                     image = Image.open(io.BytesIO(poster_bytes))
                     st.image(image, caption=f"{design.capitalize()} Poster", use_column_width=True)
-                    st.download_button(
-                        label=f"Download {design.capitalize()} Poster",
-                        data=poster_bytes,
-                        file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_{design}_poster.png",
-                        mime="image/png"
-                    )
+                    # st.download_button(
+                    #     label=f"Download {design.capitalize()} Poster",
+                    #     data=poster_bytes,
+                    #     file_name=f"top10_{query.lower()}_{location.lower().replace(' ', '_')}_{design}_poster.png",
+                    #     mime="image/png"
+                    # )
                 else:
                     st.error(f"Failed to generate {design} poster.")
 
