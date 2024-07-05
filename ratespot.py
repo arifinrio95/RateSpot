@@ -482,9 +482,10 @@ def install_chromium():
 #         st.error(f"Error generating poster: {str(e)}")
 #         return None
 
-def generate_poster(df, query, location, design, width=900):
+# Modifikasi fungsi generate_poster untuk menerima photo_bytes
+def generate_poster(df, query, location, design, width=900, photo_bytes=None):
     if design == 'minimalist_text':
-        html_content = create_minimalist_text_poster(query, location, width)
+        html_content = create_minimalist_text_poster(query, location, width, photo_bytes)
     elif design == 'original':
         html_content = create_coffee_shops_poster(df, query, location, width)
     elif design == 'modern':
