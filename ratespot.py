@@ -538,25 +538,27 @@ def create_individual_place_poster(place, photo_bytes, width=1200):
     </head>
     <body>
         <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
-            <div class="flex flex-col h-full p-10">
-                <div class="h-2/5 overflow-hidden rounded-lg shadow-lg">
+            <div class="flex flex-col h-full p-8">
+                <div class="h-2/5 overflow-hidden rounded-lg shadow-lg mb-6">
                     {photo_html}
                 </div>
-                <div class="h-3/5 flex flex-col justify-center space-y-6">
-                    <h1 class="title text-6xl font-bold text-gray-900">{place['name']}</h1>
-                    <div class="flex items-center">
-                        <div class="flex mr-4 scale-150">{stars_html}</div>
-                        <span class="text-3xl text-gray-700">({place['rating']})</span>
+                <div class="flex-grow flex flex-col justify-between">
+                    <h1 class="title text-5xl font-bold text-gray-900 mb-4 leading-tight">{place['name']}</h1>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="flex mr-4 scale-125">{stars_html}</div>
+                            <span class="text-2xl text-gray-700">({place['rating']})</span>
+                        </div>
+                        <p class="text-2xl text-gray-600">{place['user_ratings_total']} reviews</p>
+                        <p class="text-xl text-gray-700 leading-relaxed">{place['address']}</p>
                     </div>
-                    <p class="text-3xl text-gray-600">{place['user_ratings_total']} reviews</p>
-                    <p class="text-2xl text-gray-700">{place['address']}</p>
                 </div>
             </div>
         </div>
     </body>
     </html>
     '''
-
+    
 def generate_individual_poster(place, photo_bytes, width=1200):
     html_content = create_individual_place_poster(place, photo_bytes, width)
     try:
@@ -628,8 +630,8 @@ def main():
 
         st.header("Top 10 Places:")
         st.write("Checking df_top10 for photo references:")
-        for index, place in df_top10.iterrows():
-            st.write(f"{place['name']}: {'Has photo_reference' if place['photo_reference'] else 'No photo_reference'}")
+        # for index, place in df_top10.iterrows():
+        #     st.write(f"{place['name']}: {'Has photo_reference' if place['photo_reference'] else 'No photo_reference'}")
             # st.write(f"{place['name']}: {'Has photo_reference' if 'photo_reference' in place and place['photo_reference'] else 'No photo_reference'}")
 
         # Display top 10 places
@@ -699,15 +701,15 @@ def main():
             st.subheader(f"{index + 1}. {place['name']}")
             
             photo_reference = place.get('photo_reference')
-            if photo_reference:
-                st.write(f"Attempting to fetch photo for {place['name']}...")
-                photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
-                if photo_bytes:
-                    st.image(photo_bytes, caption=f"Photo of {place['name']}")
-                else:
-                    st.warning(f"Could not retrieve photo for {place['name']}")
-            else:
-                st.warning(f"No photo reference available for {place['name']}")
+            # if photo_reference:
+            #     st.write(f"Attempting to fetch photo for {place['name']}...")
+            #     photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
+            #     if photo_bytes:
+            #         st.image(photo_bytes, caption=f"Photo of {place['name']}")
+            #     else:
+            #         st.warning(f"Could not retrieve photo for {place['name']}")
+            # else:
+            #     st.warning(f"No photo reference available for {place['name']}")
             
             # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
