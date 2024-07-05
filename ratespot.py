@@ -577,7 +577,7 @@ def generate_individual_poster(place, photo_bytes, width=1200):
 
 # Main Streamlit app
 def main():
-    st.title("Google Places Search App")
+    st.title("Google Places Ratespot - by Orion")
 
     # Get API key from Streamlit secrets
     api_key = st.secrets["google_places_api_key"]
