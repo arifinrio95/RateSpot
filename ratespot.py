@@ -554,7 +554,7 @@ def main():
         # st.plotly_chart(fig, use_container_width=True)
 
         # Bagian untuk generate poster
-        
+        install_chromium()
         # try:
         #     install_chromium()  # Coba instal Chromium
         #     with st.spinner("Generating poster..."):
