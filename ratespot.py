@@ -456,6 +456,69 @@ def generate_poster(df, query, location, design, width=900):
         st.error(f"Error generating {design} poster: {str(e)}")
         return None
 
+def get_place_photo(api_key, photo_reference, max_width=400):
+    base_url = "https://maps.googleapis.com/maps/api/place/photo"
+    params = {
+        'maxwidth': max_width,
+        'photoreference': photo_reference,
+        'key': api_key
+    }
+    response = requests.get(base_url, params=params)
+    return response.content if response.status_code == 200 else None
+
+def create_individual_place_poster(place, photo_bytes, width=900):
+    height = int(width * 1.4)  # Mempertahankan rasio portrait
+    stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
+    
+    return f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto:wght@300;400;700&display=swap');
+            body {{ font-family: 'Roboto', sans-serif; }}
+            .title {{ font-family: 'Playfair Display', serif; }}
+        </style>
+    </head>
+    <body>
+        <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
+            <div class="flex flex-col h-full">
+                <div class="h-1/2 overflow-hidden">
+                    <img src="data:image/jpeg;base64,{photo_bytes.decode('utf-8')}" class="w-full h-full object-cover" alt="{place['name']}">
+                </div>
+                <div class="h-1/2 p-8 flex flex-col justify-center">
+                    <h1 class="title text-4xl font-bold mb-4 text-gray-900">{place['name']}</h1>
+                    <div class="flex items-center mb-2">
+                        <div class="flex mr-2">{stars_html}</div>
+                        <span class="text-lg text-gray-700">({place['rating']})</span>
+                    </div>
+                    <p class="text-lg text-gray-600 mb-4">{place['user_ratings_total']} reviews</p>
+                    <p class="text-md text-gray-700">{place['address']}</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+
+def generate_individual_poster(place, photo_bytes, width=900):
+    html_content = create_individual_place_poster(place, photo_bytes, width)
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(chromium_sandbox=False)
+            page = browser.new_page()
+            page.set_content(html_content)
+            page.set_viewport_size({"width": width, "height": int(width * 1.4)})
+            screenshot_bytes = page.locator('.poster-container').screenshot()
+            browser.close()
+        return screenshot_bytes
+    except Exception as e:
+        st.error(f"Error generating individual poster: {str(e)}")
+        return None
+
 # Main Streamlit app
 def main():
     st.title("Google Places Search App")
@@ -576,7 +639,7 @@ def main():
 
         st.header("Generated Posters")
         
-        designs = ['minimalist_text','original', 'modern', 'colorful', 'minimalist', 'infographic', 'retro']
+        designs = ['minimalist_text','original']
         
         for design in designs:
             st.subheader(f"{design.capitalize()} Design")
@@ -593,7 +656,28 @@ def main():
                     )
                 else:
                     st.error(f"Failed to generate {design} poster.")
-                
+
+        st.header("Individual Place Posters")
+        api_key = st.secrets["google_places_api_key"]
+        for index, place in df_top10.iterrows():
+            st.subheader(f"{index + 1}. {place['name']}")
+            photo_bytes = get_place_photo(api_key, place['photo_reference'])
+            if photo_bytes:
+                with st.spinner(f"Generating poster for {place['name']}..."):
+                    individual_poster_bytes = generate_individual_poster(place, photo_bytes)
+                    if individual_poster_bytes:
+                        image = Image.open(io.BytesIO(individual_poster_bytes))
+                        st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
+                        st.download_button(
+                            label=f"Download {place['name']} Poster",
+                            data=individual_poster_bytes,
+                            file_name=f"{place['name'].lower().replace(' ', '_')}_poster.png",
+                            mime="image/png"
+                        )
+                    else:
+                        st.error(f"Failed to generate poster for {place['name']}")
+            else:
+                st.error(f"Failed to fetch photo for {place['name']}")
 
         # Download button for full data
         csv = df.to_csv(index=False)
