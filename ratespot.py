@@ -717,7 +717,7 @@ def main():
             
             # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
-                individual_poster_bytes = generate_individual_poster(place_data, photo_bytes if 'photo_bytes' in locals() else None)
+                individual_poster_bytes = generate_individual_poster(place, photo_bytes if 'photo_bytes' in locals() else None)
                 if individual_poster_bytes:
                     image = Image.open(io.BytesIO(individual_poster_bytes))
                     st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
@@ -725,7 +725,8 @@ def main():
                         label=f"Download {place['name']} Poster",
                         data=individual_poster_bytes,
                         file_name=f"{place['name'].lower().replace(' ', '_')}_poster.png",
-                        mime="image/png"
+                        mime="image/png",
+                        key=f"download_button_{index}"  # Menambahkan kunci unik
                     )
                 else:
                     st.error(f"Failed to generate poster for {place['name']}")
