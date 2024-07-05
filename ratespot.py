@@ -31,11 +31,14 @@ def search_places(api_key, query, location):
         if 'results' in result:
             for place in result['results']:
                 place_data = {
-                    'name': place['name'],
+                    'place_id': place.get('place_id', 'N/A'),
+                    'name': place.get('name', 'N/A'),
                     'rating': place.get('rating', 'N/A'),
                     'user_ratings_total': place.get('user_ratings_total', 0),
                     'address': place.get('formatted_address', 'N/A'),
-                    'photo_reference': place.get('photos', [{}])[0].get('photo_reference', None)
+                    'photo_reference': place.get('photos', [{}])[0].get('photo_reference', None),
+                    'latitude': place.get('geometry', {}).get('location', {}).get('lat', 'N/A'),
+                    'longitude': place.get('geometry', {}).get('location', {}).get('lng', 'N/A'),
                 }
                 places.append(place_data)
             st.write(f"Fetched {len(result['results'])} places. Total: {len(places)}")
@@ -47,6 +50,19 @@ def search_places(api_key, query, location):
             break
 
     return places
+
+def get_place_details(api_key, place_id):
+    base_url = "https://maps.googleapis.com/maps/api/place/details/json"
+    params = {
+        'place_id': place_id,
+        'fields': 'name,rating,user_ratings_total,formatted_address,formatted_phone_number,website,price_level,opening_hours,reviews',
+        'key': api_key
+    }
+
+    response = requests.get(base_url, params=params)
+    result = response.json()
+
+    return result.get('result', {})
 
 def get_place_photo(api_key, photo_reference, max_width=400):
     if not photo_reference:
@@ -61,18 +77,18 @@ def get_place_photo(api_key, photo_reference, max_width=400):
     return response.content if response.status_code == 200 else None
 
 # Function to get place details
-def get_place_details(api_key, place_id):
-    base_url = "https://maps.googleapis.com/maps/api/place/details/json"
-    params = {
-        'place_id': place_id,
-        'fields': 'name,rating,user_ratings_total,formatted_address,formatted_phone_number,website,price_level,opening_hours,reviews',
-        'key': api_key
-    }
+# def get_place_details(api_key, place_id):
+#     base_url = "https://maps.googleapis.com/maps/api/place/details/json"
+#     params = {
+#         'place_id': place_id,
+#         'fields': 'name,rating,user_ratings_total,formatted_address,formatted_phone_number,website,price_level,opening_hours,reviews',
+#         'key': api_key
+#     }
 
-    response = requests.get(base_url, params=params)
-    result = response.json()
+#     response = requests.get(base_url, params=params)
+#     result = response.json()
 
-    return result.get('result', {})
+#     return result.get('result', {})
 
 def min_max_scale(series):
     return (series - series.min()) / (series.max() - series.min())
