@@ -578,8 +578,8 @@ def main():
                 'website': details.get('website', 'N/A'),
                 'price_level': details.get('price_level', 'N/A'),
                 'open_now': details.get('opening_hours', {}).get('open_now', 'N/A'),
-                'latitude': place['geometry']['location']['lat'],
-                'longitude': place['geometry']['location']['lng'],
+                'latitude': place.get('latitude', 'N/A'),  # Menggunakan .get() untuk latitude
+                'longitude': place.get('longitude', 'N/A'),  # Menggunakan .get() untuk longitude
             }
 
             if 'reviews' in details and len(details['reviews']) > 0:
@@ -697,8 +697,8 @@ def main():
                 'price_level': place.get('price_level', 'N/A'),
             }
             
-            # Ambil foto tempat
-            photo_bytes = get_place_photo(api_key, place.get('photo_reference'))
+            # Ambil foto tempat jika ada photo_reference
+            photo_bytes = get_place_photo(api_key, place.get('photo_reference')) if 'photo_reference' in place else None
             
             with st.spinner(f"Generating poster for {place['name']}..."):
                 individual_poster_bytes = generate_individual_poster(place_data, photo_bytes)
