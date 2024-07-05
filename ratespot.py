@@ -686,27 +686,26 @@ def main():
                     st.error(f"Failed to generate {design} poster.")
 
         st.header("Individual Place Posters")
-        api_key = st.secrets["google_places_api_key"]
-        for index, place in df_top10.iterrows():
+        for index, place in df.iterrows():
             st.subheader(f"{index + 1}. {place['name']}")
-            photo_bytes = get_place_photo(api_key, place['photo_reference'])
-            if photo_bytes:
-                with st.spinner(f"Generating poster for {place['name']}..."):
-                    individual_poster_bytes = generate_individual_poster(place, photo_bytes)
-                    if individual_poster_bytes:
-                        image = Image.open(io.BytesIO(individual_poster_bytes))
-                        st.image(image, caption=f"{place['name']} Poster", use_column_width=True)
-                        st.download_button(
-                            label=f"Download {place['name']} Poster",
-                            data=individual_poster_bytes,
-                            file_name=f"{place['name'].lower().replace(' ', '_')}_poster.png",
-                            mime="image/png"
-                        )
-                    else:
-                        st.error(f"Failed to generate poster for {place['name']}")
+            
+            if 'place_id' in place:
+                details = get_place_details(api_key, place['place_id'])
             else:
-                st.error(f"Failed to fetch photo for {place['name']}")
-
+                details = {}
+            
+            place_data = {
+                'name': details.get('name', place.get('name', 'N/A')),
+                'rating': details.get('rating', place.get('rating', 'N/A')),
+                'user_ratings_total': details.get('user_ratings_total', place.get('user_ratings_total', 'N/A')),
+                'address': details.get('formatted_address', place.get('address', 'N/A')),
+                'phone': details.get('formatted_phone_number', 'N/A'),
+                'website': details.get('website', 'N/A'),
+                'price_level': details.get('price_level', 'N/A'),
+                'open_now': details.get('opening_hours', {}).get('open_now', 'N/A'),
+                'latitude': place.get('latitude', 'N/A'),
+                'longitude': place.get('longitude', 'N/A'),
+            }
         # Download button for full data
         csv = df.to_csv(index=False)
         st.download_button(
