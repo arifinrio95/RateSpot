@@ -29,7 +29,15 @@ def search_places(api_key, query, location):
         result = response.json()
 
         if 'results' in result:
-            places.extend(result['results'])
+            for place in result['results']:
+                place_data = {
+                    'name': place['name'],
+                    'rating': place.get('rating', 'N/A'),
+                    'user_ratings_total': place.get('user_ratings_total', 0),
+                    'address': place.get('formatted_address', 'N/A'),
+                    'photo_reference': place.get('photos', [{}])[0].get('photo_reference', None)
+                }
+                places.append(place_data)
             st.write(f"Fetched {len(result['results'])} places. Total: {len(places)}")
 
         if 'next_page_token' in result:
@@ -39,6 +47,18 @@ def search_places(api_key, query, location):
             break
 
     return places
+
+def get_place_photo(api_key, photo_reference, max_width=400):
+    if not photo_reference:
+        return None
+    base_url = "https://maps.googleapis.com/maps/api/place/photo"
+    params = {
+        'maxwidth': max_width,
+        'photoreference': photo_reference,
+        'key': api_key
+    }
+    response = requests.get(base_url, params=params)
+    return response.content if response.status_code == 200 else None
 
 # Function to get place details
 def get_place_details(api_key, place_id):
@@ -456,19 +476,11 @@ def generate_poster(df, query, location, design, width=900):
         st.error(f"Error generating {design} poster: {str(e)}")
         return None
 
-def get_place_photo(api_key, photo_reference, max_width=400):
-    base_url = "https://maps.googleapis.com/maps/api/place/photo"
-    params = {
-        'maxwidth': max_width,
-        'photoreference': photo_reference,
-        'key': api_key
-    }
-    response = requests.get(base_url, params=params)
-    return response.content if response.status_code == 200 else None
-
 def create_individual_place_poster(place, photo_bytes, width=900):
     height = int(width * 1.4)  # Mempertahankan rasio portrait
     stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
+    
+    photo_html = f'<img src="data:image/jpeg;base64,{base64.b64encode(photo_bytes).decode()}" class="w-full h-full object-cover" alt="{place["name"]}">' if photo_bytes else '<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Image Available</div>'
     
     return f'''
     <!DOCTYPE html>
@@ -487,7 +499,7 @@ def create_individual_place_poster(place, photo_bytes, width=900):
         <div class="poster-container bg-white" style="width: {width}px; height: {height}px;">
             <div class="flex flex-col h-full">
                 <div class="h-1/2 overflow-hidden">
-                    <img src="data:image/jpeg;base64,{photo_bytes.decode('utf-8')}" class="w-full h-full object-cover" alt="{place['name']}">
+                    {photo_html}
                 </div>
                 <div class="h-1/2 p-8 flex flex-col justify-center">
                     <h1 class="title text-4xl font-bold mb-4 text-gray-900">{place['name']}</h1>
