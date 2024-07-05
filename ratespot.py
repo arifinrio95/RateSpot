@@ -64,31 +64,33 @@ def get_place_details(api_key, place_id):
 
     return result.get('result', {})
 
-def get_place_photo(api_key, photo_reference, max_width=400):
+def get_place_photo(api_key, photo_reference, max_width=1600):  # Meningkatkan max_width
     if not photo_reference:
-        st.warning("No photo reference available for this place.")
         return None
     
     base_url = "https://maps.googleapis.com/maps/api/place/photo"
     params = {
         'maxwidth': max_width,
-        'photo_reference': photo_reference,
+        'photoreference': photo_reference,
         'key': api_key
     }
     
     try:
         response = requests.get(base_url, params=params)
-        st.write(f"Photo request URL: {response.url}")  # Print URL for debugging (remove API key manually)
-        st.write(f"Response status code: {response.status_code}")
-        st.write(f"Response headers: {response.headers}")
-        
         response.raise_for_status()
         
         if response.headers.get('content-type', '').startswith('image'):
-            st.success(f"Successfully retrieved photo for reference: {photo_reference[:10]}...")
-            return response.content
+            # Menggunakan PIL untuk membuka dan mengoptimalkan gambar
+            image = Image.open(BytesIO(response.content))
+            
+            # Mengoptimalkan gambar
+            optimized_image = BytesIO()
+            image.save(optimized_image, format='JPEG', quality=95, optimize=True)
+            optimized_image.seek(0)
+            
+            return optimized_image.getvalue()
         else:
-            st.warning(f"Received non-image response. Content-Type: {response.headers.get('content-type')}")
+            st.warning(f"Received non-image response for photo reference: {photo_reference[:10]}...")
             return None
     
     except requests.RequestException as e:
@@ -511,8 +513,8 @@ def generate_poster(df, query, location, design, width=900):
         st.error(f"Error generating {design} poster: {str(e)}")
         return None
 
-def create_individual_place_poster(place, photo_bytes, width=900):
-    height = int(width * 1.4)  # Mempertahankan rasio portrait
+def create_individual_place_poster(place, photo_bytes, width=1200):  # Meningkatkan lebar poster
+    height = int(width * 1.4)
     stars_html = ''.join([create_star_svg(max(0, min(100, (place['rating'] - i) * 100))) for i in range(5)])
     
     if photo_bytes:
@@ -554,7 +556,7 @@ def create_individual_place_poster(place, photo_bytes, width=900):
     </html>
     '''
 
-def generate_individual_poster(place, photo_bytes, width=900):
+def generate_individual_poster(place, photo_bytes, width=1200):  # Meningkatkan lebar poster
     html_content = create_individual_place_poster(place, photo_bytes, width)
     try:
         with sync_playwright() as p:
@@ -562,7 +564,7 @@ def generate_individual_poster(place, photo_bytes, width=900):
             page = browser.new_page()
             page.set_content(html_content)
             page.set_viewport_size({"width": width, "height": int(width * 1.4)})
-            screenshot_bytes = page.locator('.poster-container').screenshot()
+            screenshot_bytes = page.locator('.poster-container').screenshot(type='jpeg', quality=100)
             browser.close()
         return screenshot_bytes
     except Exception as e:
@@ -698,7 +700,7 @@ def main():
             photo_reference = place.get('photo_reference')
             if photo_reference:
                 st.write(f"Attempting to fetch photo for {place['name']}...")
-                photo_bytes = get_place_photo(api_key, photo_reference)
+                photo_bytes = get_place_photo(api_key, place.get('photo_reference'), max_width=1600)
                 if photo_bytes:
                     st.image(photo_bytes, caption=f"Photo of {place['name']}")
                 else:
