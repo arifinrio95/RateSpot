@@ -702,18 +702,18 @@ def main():
 
         st.header("Individual Place Posters")
         for index, place in df_top10.iterrows():
-        st.subheader(f"{index + 1}. {place['name']}")
-        
-        photo_reference = place.get('photo_reference')
-        if photo_reference:
-            st.write(f"Attempting to fetch photo for {place['name']}...")
-            photo_bytes = get_place_photo(api_key, photo_reference)
-            if photo_bytes:
-                st.image(photo_bytes, caption=f"Photo of {place['name']}")
+            st.subheader(f"{index + 1}. {place['name']}")
+            
+            photo_reference = place.get('photo_reference')
+            if photo_reference:
+                st.write(f"Attempting to fetch photo for {place['name']}...")
+                photo_bytes = get_place_photo(api_key, photo_reference)
+                if photo_bytes:
+                    st.image(photo_bytes, caption=f"Photo of {place['name']}")
+                else:
+                    st.warning(f"Could not retrieve photo for {place['name']}")
             else:
-                st.warning(f"Could not retrieve photo for {place['name']}")
-        else:
-            st.warning(f"No photo reference available for {place['name']}")
+                st.warning(f"No photo reference available for {place['name']}")
             
             # Generate dan tampilkan poster
             with st.spinner(f"Generating poster for {place['name']}..."):
